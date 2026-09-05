@@ -129,9 +129,7 @@ class Loading(RuleCase):
     def test_claude_md_key_in_managed_settings_is_honoured(self):
         self.write("CLAUDE.md", "hello\n")
         settings = Settings(
-            layers=[
-                Layer(scope="managed", path=Path("/managed.json"), data={"claudeMd": "x"})
-            ]
+            layers=[Layer(scope="managed", path=Path("/managed.json"), data={"claudeMd": "x"})]
         )
         self.assertNotIn("LOAD004", self.fired(settings=settings))
 
@@ -208,7 +206,9 @@ class Imports(RuleCase):
         link.symlink_to(self.root)
         try:
             files = discover(link, include_user=False)
-            files = [f for f in files if "link" in str(f.path) or str(f.path).startswith(str(self.root))]
+            files = [
+                f for f in files if "link" in str(f.path) or str(f.path).startswith(str(self.root))
+            ]
             ctx = Context(project=link, settings=Settings())
             fired = {f.rule for f in run_all(files, ctx)}
             self.assertNotIn("IMPORT005", fired)

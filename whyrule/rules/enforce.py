@@ -173,8 +173,8 @@ def unenforceable(memo: MemoryFile, ctx: Context) -> list[Finding]:
                         "Because CLAUDE.md is context rather than configuration, how you "
                         "write an instruction decides how reliably it is followed, and "
                         "vague instructions are named as the ones that are not. The "
-                        "documented contrast: \"Use 2-space indentation\" instead of "
-                        "\"Format code properly\"."
+                        'documented contrast: "Use 2-space indentation" instead of '
+                        '"Format code properly".'
                     ),
                     fix=(
                         "Replace the adjective with the test. What would you point at in "

@@ -139,6 +139,4 @@ def contradictions(files, ctx: Context) -> list[Finding]:
                 )
             )
 
-    return (
-        conflicts[:MAX_PER_RULE] + value_clashes[:MAX_PER_RULE] + duplicates[:MAX_PER_RULE]
-    )
+    return conflicts[:MAX_PER_RULE] + value_clashes[:MAX_PER_RULE] + duplicates[:MAX_PER_RULE]

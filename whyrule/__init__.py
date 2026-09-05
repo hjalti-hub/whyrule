@@ -36,9 +36,7 @@ __all__ = [
 ]
 
 
-def check(
-    project: Path | None = None, **kwargs
-) -> tuple[list[MemoryFile], list[Finding]]:
+def check(project: Path | None = None, **kwargs) -> tuple[list[MemoryFile], list[Finding]]:
     """Discover the memory files for ``project`` and run every rule.
 
     Returns both halves because a finding count means little without knowing
