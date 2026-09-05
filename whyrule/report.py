@@ -6,8 +6,9 @@ import json
 import os
 import sys
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, TextIO
+from typing import TextIO
 
 from .model import Finding, MemoryFile, Severity
 
