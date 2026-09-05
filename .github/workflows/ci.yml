@@ -1,0 +1,54 @@
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run tests
+        run: python -m unittest discover -s tests -t . -v
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pipx install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
+  dogfood:
+    # whyrule has to survive its own examples, or the examples are lying.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: The clean example must be clean
+        run: python -m whyrule --project examples/clean --no-user --fail-on note
+
+      - name: The broken example must still be broken
+        run: |
+          if python -m whyrule --project examples/broken --no-user; then
+            echo "::error::examples/broken produced no errors; the examples have rotted"
+            exit 1
+          fi
+
+      - name: The catalog and the rules must agree
+        run: python tests/check_catalog.py

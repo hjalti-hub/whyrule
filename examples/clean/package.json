@@ -1,0 +1,1 @@
+{"name":"clean","scripts":{"test":"vitest run"}}
