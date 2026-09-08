@@ -1,5 +1,9 @@
 # whyrule
 
+[![PyPI](https://img.shields.io/pypi/v/whyrule)](https://pypi.org/project/whyrule/)
+[![Python](https://img.shields.io/pypi/pyversions/whyrule)](https://pypi.org/project/whyrule/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 ### Claude isn't ignoring your CLAUDE.md. It never got it.
 
 You wrote the rule down. You wrote it clearly. Claude does the opposite anyway,
@@ -19,16 +23,16 @@ and the model, none of which are visible by reading the file:
 - your project rule and your `~/.claude/CLAUDE.md` rule flatly contradicting each
   other — they're concatenated, not overridden, so Claude picks one arbitrarily
 
-`whyrule` finds all of it. There is nothing to install to try it:
+`whyrule` finds all of it, in one command:
 
 ```bash
-git clone https://github.com/hjalti-hub/whyrule && cd whyrule
-python3 -m whyrule
+pip install whyrule
+whyrule
 ```
 
 No API key. No model calls. No dependencies. Just `python3`.
 
-Once you want it to run without being asked, install it properly and it
+And once you want it to stop being something you have to remember, it
 [hooks itself in](#running-itself) — after that you never type it again.
 
 ```console
@@ -240,22 +244,24 @@ behaviour:
 
 ## Install
 
-Try it with no install at all:
+```bash
+pip install whyrule      # or: pipx install whyrule, to keep it out of your environment
+```
+
+Python 3.9+. No dependencies.
+
+**Or from a clone**, if you would rather read it before you point it at your
+instructions:
 
 ```bash
 git clone https://github.com/hjalti-hub/whyrule && cd whyrule
 python3 -m whyrule
 ```
 
-To use it anywhere, and to install the hooks:
-
-```bash
-pipx install git+https://github.com/hjalti-hub/whyrule
-# or
-pip install git+https://github.com/hjalti-hub/whyrule
-```
-
-Python 3.9+. No dependencies.
+Every command works that way, with one exception: `whyrule install`, which
+registers the hooks, needs a real install. A hook runs from whatever project
+you have open, so one that could only import whyrule from the checkout would
+fail there — and Claude Code would swallow the error and carry on.
 
 ## Use
 
@@ -387,7 +393,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pipx install git+https://github.com/hjalti-hub/whyrule
+      - run: pip install whyrule
       - run: whyrule --no-user --fail-on warning
 ```
 

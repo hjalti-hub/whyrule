@@ -71,8 +71,8 @@ NOT_INSTALLED = (
     "\n"
     "Install it first, then run `whyrule install` again:\n"
     "\n"
-    "    pip install .        # from this checkout\n"
-    "    pipx install .       # or, to keep it out of your environment\n"
+    "    pip install whyrule     # or: pipx install whyrule\n"
+    "    pip install .           # or, to install this checkout\n"
 )
 
 
