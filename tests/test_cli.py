@@ -145,5 +145,86 @@ class Subcommands(CliCase):
             self.assertIn("hooks", json.loads(out))
 
 
+class PipedOutput(unittest.TestCase):
+    """`whyrule rules | head` must not end in a BrokenPipeError traceback.
+
+    Closing the pipe early is how `head`, `grep -q` and quitting `less` all
+    behave, so a traceback there is the tool's fault, not the user's.
+
+    The sibling tools whyskill and deadweight both shipped this bug to PyPI
+    before anyone noticed, and the fix that followed was itself incomplete the
+    first time - which is what the third test here is for.
+    """
+
+    def _stderr_of_piped(self, args: str) -> str:
+        import subprocess
+        import sys
+
+        repo = Path(__file__).resolve().parent.parent
+        with tempfile.NamedTemporaryFile(suffix=".err") as err:
+            subprocess.run(
+                f"{sys.executable} -m whyrule {args} 2>{err.name} | head -1",
+                shell=True,
+                cwd=repo,
+                stdout=subprocess.DEVNULL,
+            )
+            return Path(err.name).read_text()
+
+    def test_rules_survives_a_closed_pipe(self):
+        stderr = self._stderr_of_piped("rules")
+        self.assertNotIn("BrokenPipeError", stderr)
+        self.assertNotIn("Traceback", stderr)
+
+    def test_check_survives_a_closed_pipe(self):
+        stderr = self._stderr_of_piped("examples/broken --no-user --explain")
+        self.assertNotIn("BrokenPipeError", stderr)
+        self.assertNotIn("Traceback", stderr)
+
+    def test_output_left_in_the_buffer_does_not_raise_at_shutdown(self):
+        """The case a pipeline test cannot be trusted to catch.
+
+        stdout is block-buffered when it is a pipe, so output smaller than the
+        buffer never reaches the pipe while the command runs: the write fails
+        for the first time in the interpreter's shutdown flush, after main()
+        has returned, and prints "Exception ignored on flushing sys.stdout"
+        where no handler can see it.
+
+        Whether the pipeline tests above hit that depends on whether `head`
+        exits before or after the first flush. In whyskill they passed locally
+        and failed on all three CI versions. This one removes the race: the
+        read end is closed before whyrule starts, so the only write that can
+        fail is the flush main() performs itself.
+        """
+        import os
+        import sys
+        from unittest import mock
+
+        read_fd, write_fd = os.pipe()
+        os.close(read_fd)
+        writer = os.fdopen(write_fd, "w")
+
+        with mock.patch.object(sys, "stdout", writer):
+            code = main(["rules"])
+        self.assertEqual(code, 0)
+
+        # Not decoration: if main() returned without flushing, the output is
+        # still sitting in this buffer and closing raises exactly what the
+        # shutdown flush would have. Asserting only on `code` would pass with
+        # the fix removed.
+        writer.close()
+
+    def test_the_buffer_test_above_is_actually_testing_something(self):
+        """`whyrule rules` must stay smaller than the stdout buffer.
+
+        If its output grew past 8 KiB it would reach the pipe during the run,
+        the failure would surface somewhere main() can already catch it, and
+        the test above would pass whether or not the flush is there.
+        """
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            main(["rules"])
+        self.assertLess(len(buffer.getvalue().encode()), io.DEFAULT_BUFFER_SIZE)
+
+
 if __name__ == "__main__":
     unittest.main()
